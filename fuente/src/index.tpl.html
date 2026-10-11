@@ -1,0 +1,35 @@
+<title>La forma del individuo</title>
+<meta name="description" content="Presentación sobre Ian Watt, The Rise of the Novel (1957): condiciones históricas, sociales y filosóficas del realismo formal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IM+Fell+English:ital@0;1&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+{{CSS}}
+</style>
+<div class="app" id="app">
+  <main class="visor" id="visor">
+    <div class="escenario" id="escenario">
+{{SLIDES}}
+    </div>
+  </main>
+  <p class="aviso-giro">Gira el teléfono para ver las láminas más grandes.</p>
+  <nav class="controles" id="barra" aria-label="Controles de la presentación">
+    <button type="button" class="control flecha izq" id="b-ant" aria-label="Lámina anterior" title="Anterior (←)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button type="button" class="control flecha der" id="b-sig" aria-label="Lámina siguiente" title="Siguiente (→ o espacio)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    <div class="esquina">
+      <button type="button" class="control" id="b-indice" aria-pressed="false" aria-label="Índice" title="Índice (I)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+      <button type="button" class="control" id="b-notas" aria-pressed="false" aria-label="Notas del orador" title="Notas del orador (N)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg></button>
+      <button type="button" class="control" id="b-pantalla" aria-pressed="false" aria-label="Pantalla completa" title="Pantalla completa (F)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+    <p class="solo-lector" aria-live="polite">Lámina <span id="n-act">1</span> de <span id="n-tot"></span> · <span id="seccion-actual"></span></p>
+    <div class="progreso" id="progreso" aria-hidden="true"></div>
+  </nav>
+  <section class="panel" id="panel-notas" hidden aria-label="Notas del orador"><h2>Notas del orador</h2><p id="texto-notas"></p></section>
+  <nav class="indice" id="indice" hidden aria-label="Índice de láminas"></nav>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+window.GLIFOS = {{GLIFOS}};
+{{G3D}}
+{{JS}}
+</script>
