@@ -6,6 +6,8 @@ Presentación web sobre Ian Watt, *The Rise of the Novel* (1957): las condicione
 
 Teclado: flechas o espacio para avanzar, `I` índice, `N` notas del orador, `F` pantalla completa.
 
+En el celular: deslizar para avanzar. El botón de pantalla completa activa un **modo grande**: con el teléfono en vertical, la presentación se gira para ocupar toda la pantalla (basta con girar el teléfono para leerla); en Android además se pasa a pantalla completa real. En iPhone, para verla sin las barras de Safari, se puede usar *Compartir → Agregar a pantalla de inicio* y abrirla desde ese ícono.
+
 ## Contenido
 
 | Carpeta o archivo | Qué es |

@@ -50,7 +50,8 @@ for nombre, pos, extra in FIGS:
         continue
     clase = '.%s-figura' % nombre
     FIG_CSS += f['css'] + COMUN.replace('.FIG', clase) + '%s{position:absolute;%s}\n%s\n' % (clase, pos, extra)
-    FIG_JS += '\n{\n' + f['live'] + '\n}\n'
+    # Arrastre: en el modo grande girado el eje horizontal de la lámina es el vertical de la pantalla
+    FIG_JS += '\n{\n' + f['live'].replace('(e.clientX - b.left) / b.width', 'window.fraccionX(e, b)') + '\n}\n'
     html = html.replace(marca, '<div class="%s-figura iso %s-tema" data-theme="light">%s</div>' % (nombre, nombre, f['body']))
 out = (leer('index.tpl.html')
        .replace('{{CSS}}', leer('deck.css') + FIG_CSS)
@@ -70,6 +71,10 @@ with open(os.path.join(dist, 'index.html'), 'w', encoding='utf-8') as f:
 # Copia autónoma (con su propio esqueleto) para abrir en local
 local = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
          '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+         '<meta name="mobile-web-app-capable" content="yes">\n'
+         '<meta name="apple-mobile-web-app-capable" content="yes">\n'
+         '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n'
+         '<meta name="theme-color" content="#06101B">\n'
          '<style>[hidden]{display:none!important}img{max-width:100%}</style>\n</head>\n<body>\n' + out + '\n</body>\n</html>\n')
 with open(os.path.join(dist, 'local.html'), 'w', encoding='utf-8') as f:
     f.write(local)

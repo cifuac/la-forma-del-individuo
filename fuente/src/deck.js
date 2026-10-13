@@ -34,10 +34,19 @@
   });
 
   /* ---------- Escala del escenario ---------- */
+  /* Modo grande (celulares): sin márgenes y, si el teléfono está vertical, la presentación se gira 90°
+     para ocupar toda la pantalla (el iPhone no permite pantalla completa en páginas web). */
+  let grande = false, girada = false;
   function ajustar() {
+    const vw = innerWidth, vh = innerHeight;
+    girada = grande && vh > vw;
+    app.classList.toggle('grande', grande);
+    app.classList.toggle('girada', girada);
+    app.style.setProperty('--vw', vw + 'px');
+    app.style.setProperty('--vh', vh + 'px');
     const W = visor.clientWidth;
     const H = visor.clientHeight;
-    const lleno = captura || !!document.fullscreenElement;
+    const lleno = captura || grande || !!document.fullscreenElement;
     const g = lleno ? 0 : 16;
     const s = Math.max(0.05, Math.min((W - 2 * g) / 1920, (H - 2 * g) / 1080));
     escala = s;
@@ -47,7 +56,19 @@
     if (window.G3D) window.G3D.escala(s);
   }
   addEventListener('resize', ajustar);
-  document.addEventListener('fullscreenchange', () => { ajustar(); marcarBotones(); });
+  addEventListener('orientationchange', () => setTimeout(ajustar, 250));
+  document.addEventListener('fullscreenchange', () => {
+    // Si se sale de la pantalla completa (gesto atrás, Esc), también se sale del modo grande
+    if (!document.fullscreenElement && grande && pantallaReal) { grande = false; pantallaReal = false; }
+    ajustar(); marcarBotones();
+  });
+  // Coordenadas del puntero en el sistema de la lámina (considera el giro del modo grande)
+  function local(e, b) {
+    return girada
+      ? { x: e.clientY - b.top, y: b.right - e.clientX, w: b.height, h: b.width }
+      : { x: e.clientX - b.left, y: e.clientY - b.top, w: b.width, h: b.height };
+  }
+  window.fraccionX = (e, b) => { const p = local(e, b); return p.x / p.w; };
 
   /* ---------- Carga diferida de imágenes ---------- */
   function cargar(i) {
@@ -222,7 +243,8 @@
   }
   $$('.lupa').forEach(el => el.addEventListener('pointermove', e => {
     const b = el.getBoundingClientRect();
-    el._puntero = { x: (e.clientX - b.left) / escala, y: (e.clientY - b.top) / escala, t: performance.now() };
+    const p = local(e, b);
+    el._puntero = { x: p.x / escala, y: p.y / escala, t: performance.now() };
   }));
   function comparadores(lam, t) {
     cache(lam, '_comparadores', '.comparador').forEach(el => {
@@ -234,7 +256,7 @@
     });
   }
   $$('.comparador').forEach(el => {
-    const mover = e => { const b = el.getBoundingClientRect(); el._corte = Math.max(4, Math.min(96, (e.clientX - b.left) / b.width * 100)); el._ultimo = performance.now(); };
+    const mover = e => { el._corte = Math.max(4, Math.min(96, window.fraccionX(e, el.getBoundingClientRect()) * 100)); el._ultimo = performance.now(); };
     el.addEventListener('pointerdown', e => { el._arrastre = true; el.setPointerCapture(e.pointerId); mover(e); });
     el.addEventListener('pointermove', e => { if (el._arrastre) mover(e); });
     el.addEventListener('pointerup', () => { el._arrastre = false; });
@@ -367,15 +389,36 @@
   function marcarBotones() {
     $('#b-notas').setAttribute('aria-pressed', String(!panelNotas.hidden));
     $('#b-indice').setAttribute('aria-pressed', String(!indice.hidden));
-    $('#b-pantalla').setAttribute('aria-pressed', String(!!document.fullscreenElement));
+    $('#b-pantalla').setAttribute('aria-pressed', String(grande || !!document.fullscreenElement));
   }
   function alternarNotas(v) { panelNotas.hidden = v === undefined ? !panelNotas.hidden : !v; marcarBotones(); mostrarBarra(); }
   function alternarIndice(v) { indice.hidden = v === undefined ? !indice.hidden : !v; marcarBotones(); mostrarBarra(); }
+  let pantallaReal = false;
   function pantallaCompleta() {
-    try {
-      if (document.fullscreenElement) document.exitFullscreen();
-      else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
-    } catch (e) { /* no disponible */ }
+    const doc = document.documentElement;
+    const pedir = doc.requestFullscreen || doc.webkitRequestFullscreen;
+    const salir = document.exitFullscreen || document.webkitExitFullscreen;
+    const enPantalla = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!tactil) {
+      // Computador: pantalla completa normal
+      try { if (enPantalla) salir.call(document); else if (pedir) Promise.resolve(pedir.call(doc)).catch(() => {}); } catch (e) { /* no disponible */ }
+      return;
+    }
+    // Celular o tableta: modo grande, más pantalla completa y giro horizontal donde el navegador lo permita (Android)
+    grande = !grande;
+    if (grande) {
+      try {
+        if (pedir && !enPantalla) Promise.resolve(pedir.call(doc)).then(() => {
+          pantallaReal = true;
+          if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
+        }).catch(() => {});
+      } catch (e) { /* no disponible: queda el modo grande girado */ }
+    } else {
+      pantallaReal = false;
+      try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) { /* nada */ }
+      try { if (enPantalla) salir.call(document); } catch (e) { /* nada */ }
+    }
+    ajustar(); marcarBotones(); mostrarBarra();
   }
   let reloj = 0;
   function mostrarBarra() {
@@ -403,7 +446,7 @@
     else if (k === 'f' || k === 'F') pantallaCompleta();
     else if (k === 'n' || k === 'N') alternarNotas();
     else if (k === 'i' || k === 'I') alternarIndice();
-    else if (k === 'Escape') { alternarIndice(false); alternarNotas(false); }
+    else if (k === 'Escape') { alternarIndice(false); alternarNotas(false); if (grande) pantallaCompleta(); }
   });
 
   // Deslizar en pantallas táctiles
@@ -411,8 +454,11 @@
   visor.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
   visor.addEventListener('touchend', e => {
     if (x0 === null) return;
-    const dx = e.changedTouches[0].clientX - x0;
-    const dy = e.changedTouches[0].clientY - y0;
+    // Con la presentación girada, el deslizamiento horizontal de la lámina es vertical en la pantalla
+    const sx = e.changedTouches[0].clientX - x0;
+    const sy = e.changedTouches[0].clientY - y0;
+    const dx = girada ? sy : sx;
+    const dy = girada ? -sx : sy;
     if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0) avanzar(); else retroceder(); }
     else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) mostrarBarra();
     x0 = y0 = null;

@@ -211,12 +211,22 @@ body {
 .aviso-giro { display: none; }
 @media (max-width: 640px) and (orientation: portrait) {
   .aviso-giro {
-    display: block; position: fixed; left: 16px; right: 16px; top: calc(16px + env(safe-area-inset-top, 0px));
+    display: block; position: fixed; left: 16px; right: 16px; top: calc(64px + env(safe-area-inset-top, 0px));
     font: 500 14px/1.4 var(--f-rotulo); color: var(--ui-tenue); text-align: center;
   }
 }
 
+/* Modo grande en celulares: con el teléfono vertical, la presentación entera (láminas y controles) se gira 90° */
+.app.girada {
+  inset: auto; left: 0; top: 0;
+  width: var(--vh, 100vh); height: var(--vw, 100vw);
+  transform-origin: 0 0;
+  transform: translateX(var(--vw, 100vw)) rotate(90deg);
+}
+.grande .escenario { box-shadow: none; }
+
 .captura .controles, .captura .aviso-giro { display: none; }
+.grande .aviso-giro { display: none; }
 .captura .escenario { box-shadow: none; }
 
 @media (prefers-reduced-motion: reduce) {
